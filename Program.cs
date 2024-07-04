@@ -6,88 +6,146 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using System.Linq;
+using Serilog;
 namespace CaptiveConnector{    
     class Program{
         static async Task Main(string[] args) {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console()
+            .WriteTo.File(args[3], rollingInterval: RollingInterval.Day)
+            .CreateLogger();
             var wifiSetting = new WifiSetting();
             wifiSetting.Ssid = args[0];
-            if(args[1] == "0")
+            if(args[2] == "0")
             {
                 await NoDogSplash();
             }
-            else if(args[1] =="1")
+            else if(args[2] =="1")
             {
-                await Starbucks();
+                Log.Information("Choosing Starbucks workflow");
+                wifiSetting.Security = 2;
+                await Starbucks(wifiSetting);
             }
-            else if(args[1] == "2")
+            else if(args[2] == "2")
             {
-                await NoCaptivePortal();
+                Log.Information("Choosing Testing workflow");
+                wifiSetting.Key = args[1];
+                await Testing();
             }
+            Log.Information("Ended");
+            Log.CloseAndFlush();
         }
-        static async Task NoCaptivePortal()
+        static async Task Testing()
         {
-             
+            var options = new ChromeOptions();
+            options.AddArgument("--no-sandbox");
+            var driver = new ChromeDriver(options);
+            var captiveUrl = await GetCaptivePortalUrlAsync();
+            Log.Information("Captive Url: " + captiveUrl);
+            driver.Navigate().GoToUrl(captiveUrl);
+//            driver.Navigate().GoToUrl("https://google.com"); 
+            while(await IsCaptivePortalAsync())
+            {
+                await AttemptLogin(driver);
+            }
+            Log.Information("Logged in");
         }
         static async Task NoDogSplash()
         {
             
         }
-        static async Task Starbucks()
+        static async Task Starbucks(WifiSetting wifiSetting)
         {
+            await TryWifiConnectionWithNetworkManager(wifiSetting);
+            var options = new ChromeOptions();
+            options.AddArgument("--no-sandbox");
+            var driver = new ChromeDriver(options);
+            var captiveUrl = await GetCaptivePortalUrlAsync();
+            Log.Information("Captive Url: " + captiveUrl);
+            driver.Navigate().GoToUrl(captiveUrl);  
+//            driver.Navigate().GoToUrl("https://google.com"); 
+            while(await IsCaptivePortalAsync())
+            {
+                await AttemptLogin(driver);
+            }
+            Log.Information("Logged in");
             
         }
-        static bool AttemptLogin(IWebDriver driver)
+        static async Task<bool> AttemptLogin(IWebDriver driver)
         {
-            var actions = new List<Func<IWebDriver, bool>>
+            var actions = new List<Func<IWebDriver, Task<bool>>>
             {
                 TryClickToAcceptTerms
             };
 
             foreach (var action in actions)
             {
-                if (action(driver))
+                Log.Information("Trying: " + nameof(action));
+                if (await action(driver))
                 {
                     return true;
                 }
             }
-
             return false;
         }
-        static bool TryClickToAcceptTerms(IWebDriver driver)
+        static async Task<bool> TryClickToAcceptTerms(IWebDriver driver)
         {
+            Log.Information("Trying to accept terms");
             try
             {
                 // Find and click the checkbox
-                var checkbox = FindBestMatch(driver, "//input[@type='checkbox']", new[] { "accept", "agree", "terms" });
+                var checkbox = await FindBestMatch(driver, "//input[@type='checkbox']", new[] { "accept", "agree", "terms" });
                 if (checkbox != null)
                 {
                     checkbox.Click();
                     Thread.Sleep(1000);
                 }
-
+                Log.Information("Checkint for agree button");
                 // Find and click the agree button
-                var agreeButton = FindBestMatch(driver, "//button | //input[@type='submit'] | //a", new[] { "agree", "accept", "continue" });
+                var agreeButton = await FindBestMatch(driver, "//button | //input[@type='submit'] | //a", new[] { "agree", "accept", "continue","connect" });
                 if (agreeButton != null)
                 {
                     agreeButton.Click();
                     Thread.Sleep(2000);
+                    driver.Navigate().GoToUrl("http://10.3.141.1:2050/nodogsplash_auth/"); //temp bug fix in authenticating
                     return true;
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error in TryClickToAcceptTerms: {e.Message}");
+                Log.Information($"Error in TryClickToAcceptTerms: {e.Message}");
             }
+            Log.Information("Returning False");
             return false;
         }
         static async Task<IWebElement> FindBestMatch(IWebDriver driver, string xpath, string[] keywords)
         {
+            Log.Information("XPATH: " + xpath);
             var elements = driver.FindElements(By.XPath(xpath));
             foreach(var element in elements)
             {
-                foreach(var keyword in keywords)
+                List<string> texts = new List<string>();
+                texts.Add(element.Text.ToLower());
+                texts.Add(element.GetAttribute("value").ToLower());
+                texts.Add(element.GetAttribute("name").ToLower());
+                foreach(string keyword in keywords)
                 {
-//                    if((await GetSynonyms(keyword)).FirstOrDefault(stringToCheck => stringToCheck.Contains(keyword)));
+                    Log.Information(keyword);
+                    var synonyms = await GetSynonyms(keyword);
+                    foreach(string word in synonyms)
+                    {
+                        Log.Verbose(word);
+                    }
+                    foreach(string text in texts)
+                    {
+                        Log.Information($"Matching: {text} with {keyword}");
+                        if(synonyms.Any(word => text.Contains(word)))
+                        {
+                            Log.Information("Returning element with text" + text);
+                            return element;
+                        }
+                    }
                 }
             }
             return null;
@@ -117,22 +175,48 @@ namespace CaptiveConnector{
                 string result = reader.ReadToEnd();
                 string[] wordsArray = result.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                 synonyms = new List<string>(wordsArray);
+                synonyms = synonyms.ConvertAll(d =>d.ToLower());
+                synonyms.Add(word.ToLower());
             }
         }
         return synonyms;
     }
     static async Task<String> GetCaptivePortalUrlAsync()
     {
-        string hostname = "www.msftconnecttest.com";
-        
-        // Resolve the hostname to get IP addresses
-        IPHostEntry hostEntry = await Dns.GetHostEntryAsync(hostname);
-        
-        foreach (IPAddress ip in hostEntry.AddressList)
+        var handler = new HttpClientHandler
         {
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            AllowAutoRedirect = false // Disable automatic redirect following
+        };
+        using (HttpClient client = new HttpClient(handler))
+        {
+            try
             {
-                return ip.ToString();
+                // Send a GET request
+                HttpResponseMessage response = await client.GetAsync("http://www.msftconnecttest.com/connecttest.txt");
+                Log.Information("Response from Connect Test: " + await response.Content.ReadAsStringAsync());
+                // Check if the response contains a redirect
+                if (response.StatusCode == HttpStatusCode.Redirect || response.StatusCode == HttpStatusCode.RedirectKeepVerb || response.StatusCode == HttpStatusCode.RedirectMethod)
+                {
+                    // Get the Location header value
+                    if (response.Headers.Location != null)
+                    {
+                        string location = response.Headers.Location.ToString();
+                        Log.Information("Redirect Location: " + location);
+                        return location;
+                    }
+                    else
+                    {
+                        Log.Information("No Location header found.");
+                    }
+                }
+                else
+                {
+                    Log.Information("No redirect occurred. Status Code: " + response.StatusCode);
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Log.Information("Request error: " + e.Message);
             }
         }
         return null;
@@ -159,7 +243,7 @@ namespace CaptiveConnector{
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error checking captive portal: {ex.Message}");
+                Log.Information($"Error checking captive portal: {ex.Message}");
                 return false;
             }
         }   
@@ -167,13 +251,13 @@ namespace CaptiveConnector{
         {
 
             var di = new DirectoryInfo(@"/etc/NetworkManager/system-connections");
-            Console.WriteLine("Files Found: " + di.GetFiles().Count());
+            Log.Information("Files Found: " + di.GetFiles().Count());
             foreach (var item in di.GetFiles())
             {
-                Console.WriteLine("Delete File: " + item.FullName);
+                Log.Information("Delete File: " + item.FullName);
                 File.Delete(item.FullName);
             }
-            Console.WriteLine("Files Left: " + di.GetFiles().Count());
+            Log.Information("Files Left: " + di.GetFiles().Count());
 
             var cmd = $@"nmcli connection reload";
             ShellHelper.ExecuteProcess("sudo", cmd, "");
@@ -181,35 +265,37 @@ namespace CaptiveConnector{
             if (wifiSetting.Security == 0)
             {
                 cmd = $@"sudo nmcli c add type wifi con-name {wifiSetting.Ssid} ifname {ifname} ssid {wifiSetting.Ssid}  802-11-wireless-security.key-mgmt wpa-psk 802-11-wireless-security.psk {wifiSetting.Key}";
-                Console.WriteLine(cmd);
+                Log.Information("Running cmd: "+ cmd);
                 ShellHelper.ExecuteProcess("sudo", cmd, "");
             }
             else if(wifiSetting.Security == 1)
             {
                 cmd = $@"sudo nmcli connection add type wifi con-name ""{wifiSetting.Ssid}"" connection.autoconnect-priority 1 ifname {ifname} ssid ""{wifiSetting.Ssid}"" wifi-sec.key-mgmt wpa-eap 802-1x.eap peap 802-1x.phase2-auth mschapv2 802-1x.identity ""{wifiSetting.UserName}"" 802-1x.password ""{wifiSetting.Password}""";
-                Console.WriteLine(cmd);
+                Log.Information("Running cmd: "+ cmd);
                 ShellHelper.ExecuteProcess("sudo", cmd, "");
             }
-            else
+            else if(wifiSetting.Security == 2)
             {
                 cmd = $@"sudo nmcli c add type wifi con-name {wifiSetting.Ssid} ifname {ifname} ssid {wifiSetting.Ssid}";
-                Console.WriteLine(cmd);
+                Log.Information("Running cmd: "+ cmd);
                 ShellHelper.ExecuteProcess("sudo", cmd, "");
             }
             
 
             cmd = $@"sudo nmcli c up {wifiSetting.Ssid} ";
-                Console.WriteLine(cmd);
+            Log.Information("Running cmd: "+ cmd);
             ShellHelper.ExecuteProcess("sudo", cmd, "");
 
             var tryCount = 5;
             var tryIndex = 0;
             while (tryIndex < tryCount)
             {
-
+                Log.Information("Checking PING");
                 var pingMs = CheckInternet();
+                Log.Information(pingMs.ToString());
                 if (pingMs > 0)
                 {
+                    Log.Information("Internet is UP");
                     return true;
                 }
                 await Task.Delay(1000);
