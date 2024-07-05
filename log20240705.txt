@@ -1,0 +1,186 @@
+2024-07-05 21:44:08.538 +05:30 [INF] Choosing Starbucks workflow
+2024-07-05 21:44:08.621 +05:30 [INF] Before Connecting: 
+2024-07-05 21:44:08.624 +05:30 [INF] Files Found: 2
+2024-07-05 21:44:08.624 +05:30 [INF] Files Left: 2
+2024-07-05 21:44:08.649 +05:30 [DBG] Output of nmcli connection reload is 
+2024-07-05 21:44:08.677 +05:30 [DBG] Output of sudo nmcli device wifi rescan is 
+2024-07-05 21:44:08.678 +05:30 [INF] Running cmd: sudo nmcli device wifi connect "raspi-webgui"
+2024-07-05 21:44:08.705 +05:30 [DBG] Output of sudo nmcli device wifi connect "raspi-webgui" is 
+2024-07-05 21:44:08.706 +05:30 [INF] Running cmd: sudo nmcli c up raspi-webgui 
+2024-07-05 21:44:08.706 +05:30 [INF] Checking PING
+2024-07-05 21:44:08.744 +05:30 [INF] 22.1
+2024-07-05 21:44:08.745 +05:30 [INF] Internet is UP
+2024-07-05 21:44:08.746 +05:30 [INF] After Connecting: 
+2024-07-05 21:44:10.407 +05:30 [INF] ChromeDriver Loaded
+2024-07-05 21:44:10.601 +05:30 [INF] Response from Connect Test: Microsoft Connect Test
+2024-07-05 21:44:10.602 +05:30 [INF] No redirect occurred. Status Code: OK
+2024-07-05 21:44:10.602 +05:30 [INF] Captive Url: 
+2024-07-05 21:44:56.155 +05:30 [INF] Choosing Starbucks workflow
+2024-07-05 21:44:56.228 +05:30 [INF] Before Connecting: 
+2024-07-05 21:44:56.229 +05:30 [INF] Files Found: 2
+2024-07-05 21:44:56.230 +05:30 [INF] Files Left: 2
+2024-07-05 21:44:56.251 +05:30 [DBG] Output of nmcli connection reload is 
+2024-07-05 21:44:56.280 +05:30 [DBG] Output of sudo nmcli device wifi rescan is 
+2024-07-05 21:44:56.280 +05:30 [INF] Running cmd: sudo nmcli device wifi connect "raspi-webgui"
+2024-07-05 21:44:58.672 +05:30 [DBG] Output of sudo nmcli device wifi connect "raspi-webgui" is [2KDevice 'wlp1s0' successfully activated with '0dddbc69-da76-4f17-9e5a-a656d3b866c1'.
+
+2024-07-05 21:44:58.673 +05:30 [INF] Running cmd: sudo nmcli c up raspi-webgui 
+2024-07-05 21:45:08.808 +05:30 [DBG] Output of sudo nmcli c up raspi-webgui  is Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/5)
+
+2024-07-05 21:45:08.809 +05:30 [INF] Checking PING
+2024-07-05 21:45:18.956 +05:30 [DBG] Output of curl http://www.gooogle.com is <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f</a></body></html>
+2024-07-05 21:45:18.957 +05:30 [INF] 99
+2024-07-05 21:45:18.958 +05:30 [INF] Internet is UP
+2024-07-05 21:45:18.959 +05:30 [INF] After Connecting: 
+2024-07-05 21:45:19.451 +05:30 [INF] ChromeDriver Loaded
+2024-07-05 21:45:19.478 +05:30 [INF] Response from Connect Test: <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt</a></body></html>
+2024-07-05 21:45:19.478 +05:30 [INF] Redirect Location: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:45:19.478 +05:30 [INF] Captive Url: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:45:19.729 +05:30 [INF] Trying: action
+2024-07-05 21:45:19.730 +05:30 [INF] Trying to accept terms
+2024-07-05 21:45:19.731 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:45:19.744 +05:30 [INF] Checking for agree button
+2024-07-05 21:45:19.745 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:45:21.991 +05:30 [INF] Trying: action
+2024-07-05 21:45:21.991 +05:30 [INF] Trying to accept terms
+2024-07-05 21:45:21.991 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:45:21.997 +05:30 [INF] Checking for agree button
+2024-07-05 21:45:21.998 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:45:24.136 +05:30 [INF] Logged in
+2024-07-05 21:45:24.136 +05:30 [INF] Ended
+2024-07-05 21:45:24.137 +05:30 [INF] Ending IP Address: 
+2024-07-05 21:45:24.152 +05:30 [INF] Internet: False
+2024-07-05 21:48:33.111 +05:30 [INF] Choosing Starbucks workflow
+2024-07-05 21:48:33.182 +05:30 [INF] Before Connecting: 
+2024-07-05 21:48:33.184 +05:30 [INF] Files Found: 2
+2024-07-05 21:48:33.184 +05:30 [INF] Files Left: 2
+2024-07-05 21:48:33.207 +05:30 [DBG] Output of nmcli connection reload is 
+2024-07-05 21:48:33.236 +05:30 [DBG] Output of sudo nmcli device wifi rescan is 
+2024-07-05 21:48:33.237 +05:30 [INF] Running cmd: sudo nmcli device wifi connect "raspi-webgui"
+2024-07-05 21:48:34.878 +05:30 [DBG] Output of sudo nmcli device wifi connect "raspi-webgui" is [2KDevice 'wlp1s0' successfully activated with '0dddbc69-da76-4f17-9e5a-a656d3b866c1'.
+
+2024-07-05 21:48:34.878 +05:30 [INF] Checking PING
+2024-07-05 21:48:34.933 +05:30 [DBG] Output of curl http://www.gooogle.com is <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f</a></body></html>
+2024-07-05 21:48:34.934 +05:30 [INF] 99
+2024-07-05 21:48:34.934 +05:30 [INF] Internet is UP
+2024-07-05 21:48:34.935 +05:30 [INF] After Connecting: 
+2024-07-05 21:48:35.417 +05:30 [INF] ChromeDriver Loaded
+2024-07-05 21:48:35.450 +05:30 [INF] Response from Connect Test: <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt</a></body></html>
+2024-07-05 21:48:35.451 +05:30 [INF] Redirect Location: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:48:35.451 +05:30 [INF] Captive Url: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:48:35.650 +05:30 [INF] Trying: action
+2024-07-05 21:48:35.651 +05:30 [INF] Trying to accept terms
+2024-07-05 21:48:35.653 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:48:35.666 +05:30 [INF] Checking for agree button
+2024-07-05 21:48:35.666 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:48:37.822 +05:30 [INF] Trying: action
+2024-07-05 21:48:37.823 +05:30 [INF] Trying to accept terms
+2024-07-05 21:48:37.823 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:48:37.831 +05:30 [INF] Checking for agree button
+2024-07-05 21:48:37.831 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:48:39.962 +05:30 [INF] Logged in
+2024-07-05 21:48:39.962 +05:30 [INF] Ended
+2024-07-05 21:48:39.963 +05:30 [INF] Ending IP Address: 
+2024-07-05 21:48:39.974 +05:30 [INF] Internet: True
+2024-07-05 21:50:46.735 +05:30 [INF] Choosing Starbucks workflow
+2024-07-05 21:50:46.798 +05:30 [INF] Before Connecting: System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[System.String,CaptiveConnector.Program+<GetWlan0IpAddressAsync>d__10]
+2024-07-05 21:50:46.800 +05:30 [INF] Files Found: 2
+2024-07-05 21:50:46.800 +05:30 [INF] Files Left: 2
+2024-07-05 21:50:46.821 +05:30 [DBG] Output of nmcli connection reload is 
+2024-07-05 21:50:46.849 +05:30 [DBG] Output of sudo nmcli device wifi rescan is 
+2024-07-05 21:50:46.850 +05:30 [INF] Running cmd: sudo nmcli device wifi connect "raspi-webgui"
+2024-07-05 21:50:48.339 +05:30 [DBG] Output of sudo nmcli device wifi connect "raspi-webgui" is [2KDevice 'wlp1s0' successfully activated with '0dddbc69-da76-4f17-9e5a-a656d3b866c1'.
+
+2024-07-05 21:50:48.340 +05:30 [INF] Checking PING
+2024-07-05 21:50:58.492 +05:30 [DBG] Output of curl http://www.gooogle.com is <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f</a></body></html>
+2024-07-05 21:50:58.493 +05:30 [INF] 99
+2024-07-05 21:50:58.494 +05:30 [INF] Internet is UP
+2024-07-05 21:50:58.494 +05:30 [INF] After Connecting: System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[System.String,CaptiveConnector.Program+<GetWlan0IpAddressAsync>d__10]
+2024-07-05 21:50:59.028 +05:30 [INF] ChromeDriver Loaded
+2024-07-05 21:50:59.059 +05:30 [INF] Response from Connect Test: <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt</a></body></html>
+2024-07-05 21:50:59.060 +05:30 [INF] Redirect Location: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:50:59.060 +05:30 [INF] Captive Url: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:50:59.337 +05:30 [INF] Trying: action
+2024-07-05 21:50:59.338 +05:30 [INF] Trying to accept terms
+2024-07-05 21:50:59.340 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:50:59.352 +05:30 [INF] Checking for agree button
+2024-07-05 21:50:59.352 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:51:06.711 +05:30 [INF] Trying: action
+2024-07-05 21:51:06.712 +05:30 [INF] Trying to accept terms
+2024-07-05 21:51:06.712 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:51:06.718 +05:30 [INF] Checking for agree button
+2024-07-05 21:51:06.718 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:51:08.822 +05:30 [INF] Logged in
+2024-07-05 21:51:08.823 +05:30 [INF] Ended
+2024-07-05 21:51:08.823 +05:30 [INF] Ending IP Address: Not found
+2024-07-05 21:51:08.838 +05:30 [INF] Internet: True
+2024-07-05 21:52:37.908 +05:30 [INF] Choosing Starbucks workflow
+2024-07-05 21:52:37.982 +05:30 [INF] Before Connecting: Not found
+2024-07-05 21:52:37.984 +05:30 [INF] Files Found: 2
+2024-07-05 21:52:37.984 +05:30 [INF] Files Left: 2
+2024-07-05 21:52:38.006 +05:30 [DBG] Output of nmcli connection reload is 
+2024-07-05 21:52:38.032 +05:30 [DBG] Output of sudo nmcli device wifi rescan is 
+2024-07-05 21:52:38.032 +05:30 [INF] Running cmd: sudo nmcli device wifi connect "raspi-webgui"
+2024-07-05 21:52:40.871 +05:30 [DBG] Output of sudo nmcli device wifi connect "raspi-webgui" is [2KDevice 'wlp1s0' successfully activated with '0dddbc69-da76-4f17-9e5a-a656d3b866c1'.
+
+2024-07-05 21:52:40.871 +05:30 [INF] Checking PING
+2024-07-05 21:52:50.932 +05:30 [DBG] Output of curl http://www.gooogle.com is <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f</a></body></html>
+2024-07-05 21:52:50.934 +05:30 [INF] 99
+2024-07-05 21:52:50.934 +05:30 [INF] Internet is UP
+2024-07-05 21:52:50.935 +05:30 [INF] After Connecting: Not found
+2024-07-05 21:52:51.403 +05:30 [INF] ChromeDriver Loaded
+2024-07-05 21:52:51.433 +05:30 [INF] Response from Connect Test: <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt</a></body></html>
+2024-07-05 21:52:51.434 +05:30 [INF] Redirect Location: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:52:51.434 +05:30 [INF] Captive Url: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:52:51.777 +05:30 [INF] Trying: action
+2024-07-05 21:52:51.778 +05:30 [INF] Trying to accept terms
+2024-07-05 21:52:51.779 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:52:51.791 +05:30 [INF] Checking for agree button
+2024-07-05 21:52:51.791 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:52:54.118 +05:30 [INF] Trying: action
+2024-07-05 21:52:54.118 +05:30 [INF] Trying to accept terms
+2024-07-05 21:52:54.118 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:52:54.124 +05:30 [INF] Checking for agree button
+2024-07-05 21:52:54.124 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:52:56.239 +05:30 [INF] Logged in
+2024-07-05 21:52:56.240 +05:30 [INF] Ended
+2024-07-05 21:52:56.242 +05:30 [INF] Ending IP Address: Not found
+2024-07-05 21:52:56.258 +05:30 [INF] Internet: True
+2024-07-05 21:58:08.577 +05:30 [INF] 10.3.141.118
+2024-07-05 21:58:47.058 +05:30 [INF] Choosing Starbucks workflow
+2024-07-05 21:58:47.134 +05:30 [INF] Before Connecting: 192.168.1.11
+2024-07-05 21:58:47.136 +05:30 [INF] Files Found: 2
+2024-07-05 21:58:47.136 +05:30 [INF] Delete File: /etc/NetworkManager/system-connections/raspi-webgui.nmconnection
+2024-07-05 21:58:47.136 +05:30 [INF] Delete File: /etc/NetworkManager/system-connections/Airtel_Zerotouch_5G.nmconnection
+2024-07-05 21:58:47.136 +05:30 [INF] Files Left: 0
+2024-07-05 21:58:47.163 +05:30 [DBG] Output of nmcli connection reload is 
+2024-07-05 21:58:47.238 +05:30 [DBG] Output of sudo nmcli device wifi rescan is 
+2024-07-05 21:58:47.238 +05:30 [INF] Running cmd: sudo nmcli device wifi connect "raspi-webgui"
+2024-07-05 21:58:50.523 +05:30 [DBG] Output of sudo nmcli device wifi connect "raspi-webgui" is [2KDevice 'wlp1s0' successfully activated with '8ba44d78-cbcb-4e30-bf7f-55c65b1098c2'.
+
+2024-07-05 21:58:50.525 +05:30 [INF] Running cmd: sudo nmcli c up raspi-webgui 
+2024-07-05 21:58:51.461 +05:30 [DBG] Output of sudo nmcli c up raspi-webgui  is Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/11)
+
+2024-07-05 21:58:51.461 +05:30 [INF] Checking PING
+2024-07-05 21:58:51.639 +05:30 [DBG] Output of curl http://www.gooogle.com is <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.gooogle.com%2f</a></body></html>
+2024-07-05 21:58:51.642 +05:30 [INF] 99
+2024-07-05 21:58:51.647 +05:30 [INF] Internet is UP
+2024-07-05 21:58:51.648 +05:30 [INF] After Connecting: 10.3.141.118
+2024-07-05 21:58:52.327 +05:30 [INF] ChromeDriver Loaded
+2024-07-05 21:58:52.355 +05:30 [INF] Response from Connect Test: <html><head></head><body><a href='http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt'>Click here to continue to<br>http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt</a></body></html>
+2024-07-05 21:58:52.356 +05:30 [INF] Redirect Location: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:58:52.356 +05:30 [INF] Captive Url: http://10.3.141.1:2050/splash.html?redir=http%3a%2f%2fwww.msftconnecttest.com%2fconnecttest.txt
+2024-07-05 21:58:52.654 +05:30 [INF] Trying: action
+2024-07-05 21:58:52.655 +05:30 [INF] Trying to accept terms
+2024-07-05 21:58:52.656 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:58:52.667 +05:30 [INF] Checking for agree button
+2024-07-05 21:58:52.667 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:58:54.889 +05:30 [INF] Trying: action
+2024-07-05 21:58:54.890 +05:30 [INF] Trying to accept terms
+2024-07-05 21:58:54.891 +05:30 [INF] XPATH: //input[@type='checkbox']
+2024-07-05 21:58:54.898 +05:30 [INF] Checking for agree button
+2024-07-05 21:58:54.898 +05:30 [INF] XPATH: //button | //input[@type='submit'] | //a
+2024-07-05 21:58:57.030 +05:30 [INF] Logged in
+2024-07-05 21:58:57.031 +05:30 [INF] Ended
+2024-07-05 21:58:57.031 +05:30 [INF] Ending IP Address: 10.3.141.118
+2024-07-05 21:58:57.048 +05:30 [INF] Internet: True

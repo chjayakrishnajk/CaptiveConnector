@@ -36,7 +36,7 @@ namespace CaptiveConnector{
             }
             Log.Information("Ended");
             Log.Information("Ending IP Address: " + GetWlan0IpAddress());
-            Log.Information("Internet: "+ await IsCaptivePortalAsync());
+            Log.Information("Internet: "+ !(await IsCaptivePortalAsync()));
             Log.CloseAndFlush();
         }
         static async Task Testing()
@@ -102,15 +102,16 @@ namespace CaptiveConnector{
             try
             {
                 // Find and click the checkbox
-                var checkbox = await FindBestMatch(driver, "//input[@type='checkbox']", new[] { "accept", "agree", "terms" });
+                var checkbox = await FindBestMatch(driver, "//input[@type='checkbox']", new[] { "accept", "acceptance", "accepted", "agree", "agreed", "agreement", "terms", "conditions", "terms and conditions", "consent", "approve", "approval", "acknowledge", "acknowledgment", "comply", "compliance" });
                 if (checkbox != null)
                 {
                     checkbox.Click();
                     Thread.Sleep(1000);
                 }
-                Log.Information("Checkint for agree button");
+                Log.Information("Checking for agree button");
                 // Find and click the agree button
-                var agreeButton = await FindBestMatch(driver, "//button | //input[@type='submit'] | //a", new[] { "agree", "accept", "continue","connect" });
+                var agreeButton = await FindBestMatch(driver, "//button | //input[@type='submit'] | //a", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" });
+
                 if (agreeButton != null)
                 {
                     agreeButton.Click();
@@ -135,22 +136,11 @@ namespace CaptiveConnector{
                 texts.Add(element.Text.ToLower());
                 texts.Add(element.GetAttribute("value").ToLower());
                 texts.Add(element.GetAttribute("name").ToLower());
-                foreach(string keyword in keywords)
+                foreach(string text in texts)
                 {
-                    Log.Information(keyword);
-                    var synonyms = await GetSynonyms(keyword);
-                    foreach(string word in synonyms)
+                    if(keywords.Contains(text))
                     {
-                        Log.Verbose(word);
-                    }
-                    foreach(string text in texts)
-                    {
-                        Log.Information($"Matching: {text} with {keyword}");
-                        if(synonyms.Any(word => text.Contains(word)))
-                        {
-                            Log.Information("Returning element with text" + text);
-                            return element;
-                        }
+                        return element;
                     }
                 }
             }
@@ -257,7 +247,7 @@ namespace CaptiveConnector{
          {
              try{
                  return NetworkInterface.GetAllNetworkInterfaces()
-                     .FirstOrDefault(ni => ni.Name.ToLower() == "wlan0" &&
+                     .FirstOrDefault(ni => ni.Name.ToLower() == "wlp1s0" &&
                                            ni.OperationalStatus == OperationalStatus.Up)
                      ?.GetIPProperties()
                      .UnicastAddresses
@@ -276,7 +266,7 @@ namespace CaptiveConnector{
             Log.Information("Files Found: " + di.GetFiles().Count());
             foreach (var item in di.GetFiles())
             {
-                if(item.FullName.Contains("preconfigure"))
+                if(!item.FullName.Contains("preconfigure"))
                 {
                     Log.Information("Delete File: " + item.FullName);
                     File.Delete(item.FullName);
@@ -312,7 +302,7 @@ namespace CaptiveConnector{
 
             cmd = $@"sudo nmcli c up {wifiSetting.Ssid} ";
             Log.Information("Running cmd: "+ cmd);
-            //ShellHelper.ExecuteProcess("sudo", cmd, ""); not using this as already we're using nmcli wifi connect, as of now
+            ShellHelper.ExecuteProcess("sudo", cmd, ""); 
 
             var tryCount = 5;
             var tryIndex = 0;
