@@ -35,6 +35,8 @@ namespace CaptiveConnector{
                 await Testing();
             }
             Log.Information("Ended");
+            Log.Information("Ending IP Address: " + GetWlan0IpAddress());
+            Log.Information("Internet: "+ await IsCaptivePortalAsync());
             Log.CloseAndFlush();
         }
         static async Task Testing()
@@ -59,7 +61,9 @@ namespace CaptiveConnector{
         }
         static async Task Starbucks(WifiSetting wifiSetting)
         {
+            Log.Information("Before Connecting: " + GetWlan0IpAddress());
             await TryWifiConnectionWithNetworkManager(wifiSetting);
+            Log.Information("After Connecting: " + GetWlan0IpAddress());
             var options = new ChromeOptions();
             options.AddArgument("--no-sandbox");
             var driver = new ChromeDriver(options);
@@ -250,15 +254,21 @@ namespace CaptiveConnector{
             }
         }  
         static string GetWlan0IpAddress()
-        {
-            return NetworkInterface.GetAllNetworkInterfaces()
-                .FirstOrDefault(ni => ni.Name.ToLower() == "wlan0" && 
-                                      ni.OperationalStatus == OperationalStatus.Up)
-                ?.GetIPProperties()
-                .UnicastAddresses
-                .FirstOrDefault(addr => addr.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                ?.Address.ToString();
-        } 
+         {
+             try{
+                 return NetworkInterface.GetAllNetworkInterfaces()
+                     .FirstOrDefault(ni => ni.Name.ToLower() == "wlan0" &&
+                                           ni.OperationalStatus == OperationalStatus.Up)
+                     ?.GetIPProperties()
+                     .UnicastAddresses
+                     .FirstOrDefault(addr => addr.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                     ?.Address.ToString();
+             }
+             catch(Exception ex)
+             {
+                 return "Not found";
+             }
+         }
         private static async Task<bool> TryWifiConnectionWithNetworkManager(WifiSetting wifiSetting)
         {
 
@@ -266,13 +276,18 @@ namespace CaptiveConnector{
             Log.Information("Files Found: " + di.GetFiles().Count());
             foreach (var item in di.GetFiles())
             {
-                Log.Information("Delete File: " + item.FullName);
-                File.Delete(item.FullName);
+                if(item.FullName.Contains("preconfigure"))
+                {
+                    Log.Information("Delete File: " + item.FullName);
+                    File.Delete(item.FullName);
+                }
             }
             Log.Information("Files Left: " + di.GetFiles().Count());
 
             var cmd = $@"nmcli connection reload";
             ShellHelper.ExecuteProcess("sudo", cmd, "");
+            cmd = "sudo nmcli device wifi rescan";
+            ShellHelper.ExecuteProcess("sudo",cmd,"");
             var ifname = $@"wlp1s0";
             if (wifiSetting.Security == 0)
             {
