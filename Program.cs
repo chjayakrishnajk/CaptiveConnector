@@ -10,6 +10,7 @@ using Serilog;
 using System.Net.NetworkInformation;
 namespace CaptiveConnector{    
     class Program{
+        public static string wifiInterface = "wlan0";
         static async Task Main(string[] args) {
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -18,6 +19,10 @@ namespace CaptiveConnector{
             .CreateLogger();
             var wifiSetting = new WifiSetting();
             wifiSetting.Ssid = args[0];
+            if(!string.IsNullOrEmpty(args[4]))
+            {
+                wifiInterface = args[4];
+            }
             if(args[1] == "0")
             {
                 await NoDogSplash();
@@ -46,9 +51,7 @@ namespace CaptiveConnector{
             options.AddArguments("headless");
             var driver = new ChromeDriver(options);
             var captiveUrl = await GetCaptivePortalUrlAsync();
-            Log.Information("Captive Url: " + captiveUrl);
             driver.Navigate().GoToUrl(captiveUrl);
-//            driver.Navigate().GoToUrl("https://google.com"); 
             while(await IsCaptivePortalAsync())
             {
                 await AttemptLogin(driver);
@@ -71,11 +74,13 @@ namespace CaptiveConnector{
             var captiveUrl = await GetCaptivePortalUrlAsync();
             Log.Information("Captive Url: " + captiveUrl);
             driver.Navigate().GoToUrl(captiveUrl);  
-//            driver.Navigate().GoToUrl("https://google.com"); 
-            while(await IsCaptivePortalAsync())
+            int i = 0;
+            while(await IsCaptivePortalAsync()&& i < 10)
             {
                 await AttemptLogin(driver);
+                ++i;
             }
+            driver.Quit();
             Log.Information("Logged in");
             
         }
@@ -88,7 +93,6 @@ namespace CaptiveConnector{
 
             foreach (var action in actions)
             {
-                Log.Information("Trying: " + nameof(action));
                 if (await action(driver))
                 {
                     return true;
@@ -247,7 +251,7 @@ namespace CaptiveConnector{
          {
              try{
                  return NetworkInterface.GetAllNetworkInterfaces()
-                     .FirstOrDefault(ni => ni.Name.ToLower() == "wlp1s0" &&
+                     .FirstOrDefault(ni => ni.Name.ToLower() == wifiInterface &&
                                            ni.OperationalStatus == OperationalStatus.Up)
                      ?.GetIPProperties()
                      .UnicastAddresses
@@ -278,22 +282,21 @@ namespace CaptiveConnector{
             ShellHelper.ExecuteProcess("sudo", cmd, "");
             cmd = "sudo nmcli device wifi rescan";
             ShellHelper.ExecuteProcess("sudo",cmd,"");
-            var ifname = $@"wlp1s0";
             if (wifiSetting.Security == 0)
             {
-                cmd = $@"sudo nmcli c add type wifi con-name {wifiSetting.Ssid} ifname {ifname} ssid {wifiSetting.Ssid}  802-11-wireless-security.key-mgmt wpa-psk 802-11-wireless-security.psk {wifiSetting.Key}";
+                cmd = $@"sudo nmcli c add type wifi con-name {wifiSetting.Ssid} ifname {wifiInterface} ssid {wifiSetting.Ssid}  802-11-wireless-security.key-mgmt wpa-psk 802-11-wireless-security.psk {wifiSetting.Key}";
                 Log.Information("Running cmd: "+ cmd);
                 ShellHelper.ExecuteProcess("sudo", cmd, "");
             }
             else if(wifiSetting.Security == 1)
             {
-                cmd = $@"sudo nmcli connection add type wifi con-name ""{wifiSetting.Ssid}"" connection.autoconnect-priority 1 ifname {ifname} ssid ""{wifiSetting.Ssid}"" wifi-sec.key-mgmt wpa-eap 802-1x.eap peap 802-1x.phase2-auth mschapv2 802-1x.identity ""{wifiSetting.UserName}"" 802-1x.password ""{wifiSetting.Password}""";
+                cmd = $@"sudo nmcli connection add type wifi con-name ""{wifiSetting.Ssid}"" connection.autoconnect-priority 1 ifname {wifiInterface} ssid ""{wifiSetting.Ssid}"" wifi-sec.key-mgmt wpa-eap 802-1x.eap peap 802-1x.phase2-auth mschapv2 802-1x.identity ""{wifiSetting.UserName}"" 802-1x.password ""{wifiSetting.Password}""";
                 Log.Information("Running cmd: "+ cmd);
                 ShellHelper.ExecuteProcess("sudo", cmd, "");
             }
             else if(wifiSetting.Security == 2)
             {
-                cmd = $@"sudo nmcli c add type wifi con-name {wifiSetting.Ssid} ifname {ifname} ssid {wifiSetting.Ssid}";
+                cmd = $@"sudo nmcli c add type wifi con-name {wifiSetting.Ssid} ifname {wifiInterface} ssid {wifiSetting.Ssid}";
                 cmd = $"sudo nmcli device wifi connect \"{wifiSetting.Ssid}\""; //temp
                 Log.Information("Running cmd: "+ cmd);
                 ShellHelper.ExecuteProcess("sudo", cmd, "");
@@ -313,7 +316,7 @@ namespace CaptiveConnector{
                 Log.Information(pingMs.ToString());
                 if (pingMs > 0)
                 {
-                    Log.Information("Internet is UP");
+                    Log.Information("PING is UP");
                     return true;
                 }
                 await Task.Delay(1000);
@@ -367,7 +370,7 @@ namespace CaptiveConnector{
 
             if (ms == 0)
             {
-                var curlOutput = ShellHelper.ExecuteProcess("sudo", "curl http://www.gooogle.com", "");
+                var curlOutput = ShellHelper.ExecuteProcess("sudo", "curl http://www.google.com", "");
                 if (curlOutput.Trim().Length > 0)
                 {
                   
