@@ -7,6 +7,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using System.Linq;
 using Serilog;
+using System.Net.NetworkInformation;
 namespace CaptiveConnector{    
     class Program{
         static async Task Main(string[] args) {
@@ -17,20 +18,20 @@ namespace CaptiveConnector{
             .CreateLogger();
             var wifiSetting = new WifiSetting();
             wifiSetting.Ssid = args[0];
-            if(args[2] == "0")
+            if(args[1] == "0")
             {
                 await NoDogSplash();
             }
-            else if(args[2] =="1")
+            else if(args[1] =="1")
             {
                 Log.Information("Choosing Starbucks workflow");
                 wifiSetting.Security = 2;
                 await Starbucks(wifiSetting);
             }
-            else if(args[2] == "2")
+            else if(args[1] == "2")
             {
                 Log.Information("Choosing Testing workflow");
-                wifiSetting.Key = args[1];
+                wifiSetting.Key = args[2];
                 await Testing();
             }
             Log.Information("Ended");
@@ -40,6 +41,7 @@ namespace CaptiveConnector{
         {
             var options = new ChromeOptions();
             options.AddArgument("--no-sandbox");
+            options.AddArguments("headless");
             var driver = new ChromeDriver(options);
             var captiveUrl = await GetCaptivePortalUrlAsync();
             Log.Information("Captive Url: " + captiveUrl);
@@ -61,6 +63,7 @@ namespace CaptiveConnector{
             var options = new ChromeOptions();
             options.AddArgument("--no-sandbox");
             var driver = new ChromeDriver(options);
+            Log.Information("ChromeDriver Loaded");
             var captiveUrl = await GetCaptivePortalUrlAsync();
             Log.Information("Captive Url: " + captiveUrl);
             driver.Navigate().GoToUrl(captiveUrl);  
@@ -108,7 +111,6 @@ namespace CaptiveConnector{
                 {
                     agreeButton.Click();
                     Thread.Sleep(2000);
-                    driver.Navigate().GoToUrl("http://10.3.141.1:2050/nodogsplash_auth/"); //temp bug fix in authenticating
                     return true;
                 }
             }
@@ -246,7 +248,17 @@ namespace CaptiveConnector{
                 Log.Information($"Error checking captive portal: {ex.Message}");
                 return false;
             }
-        }   
+        }  
+        static string GetWlan0IpAddress()
+        {
+            return NetworkInterface.GetAllNetworkInterfaces()
+                .FirstOrDefault(ni => ni.Name.ToLower() == "wlan0" && 
+                                      ni.OperationalStatus == OperationalStatus.Up)
+                ?.GetIPProperties()
+                .UnicastAddresses
+                .FirstOrDefault(addr => addr.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                ?.Address.ToString();
+        } 
         private static async Task<bool> TryWifiConnectionWithNetworkManager(WifiSetting wifiSetting)
         {
 
@@ -277,6 +289,7 @@ namespace CaptiveConnector{
             else if(wifiSetting.Security == 2)
             {
                 cmd = $@"sudo nmcli c add type wifi con-name {wifiSetting.Ssid} ifname {ifname} ssid {wifiSetting.Ssid}";
+                cmd = $"sudo nmcli device wifi connect \"{wifiSetting.Ssid}\""; //temp
                 Log.Information("Running cmd: "+ cmd);
                 ShellHelper.ExecuteProcess("sudo", cmd, "");
             }
@@ -284,7 +297,7 @@ namespace CaptiveConnector{
 
             cmd = $@"sudo nmcli c up {wifiSetting.Ssid} ";
             Log.Information("Running cmd: "+ cmd);
-            ShellHelper.ExecuteProcess("sudo", cmd, "");
+            //ShellHelper.ExecuteProcess("sudo", cmd, ""); not using this as already we're using nmcli wifi connect, as of now
 
             var tryCount = 5;
             var tryIndex = 0;
@@ -395,7 +408,9 @@ namespace CaptiveConnector{
             };
             proc.Start();
             proc.WaitForExit();
-            return proc.StandardOutput.ReadToEnd();
+            var output = proc.StandardOutput.ReadToEnd();
+            Log.Debug($"Output of {arguments} is {output}");
+            return output; 
         }
     }
     public class WifiSetting
