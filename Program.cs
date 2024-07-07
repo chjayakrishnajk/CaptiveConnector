@@ -15,13 +15,13 @@ namespace CaptiveConnector{
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Console()
-            .WriteTo.File(args[3], rollingInterval: RollingInterval.Day)
+            .WriteTo.File($"logs/log_{DateTime.Now:yyyyMMdd_HHmmss}.txt", rollingInterval: RollingInterval.Infinite ,retainedFileCountLimit: null)
             .CreateLogger();
             var wifiSetting = new WifiSetting();
             wifiSetting.Ssid = args[0];
-            if(!string.IsNullOrEmpty(args[4]))
+            if(!string.IsNullOrEmpty(args[3]))
             {
-                wifiInterface = args[4];
+                wifiInterface = args[3];
             }
             if(args[1] == "0")
             {
@@ -68,6 +68,7 @@ namespace CaptiveConnector{
             await TryWifiConnectionWithNetworkManager(wifiSetting);
             Log.Information("After Connecting: " + GetWlan0IpAddress());
             var options = new ChromeOptions();
+            options.AddArguments("headless");
             options.AddArgument("--no-sandbox");
             var driver = new ChromeDriver(options);
             Log.Information("ChromeDriver Loaded");
@@ -75,7 +76,7 @@ namespace CaptiveConnector{
             Log.Information("Captive Url: " + captiveUrl);
             driver.Navigate().GoToUrl(captiveUrl);  
             int i = 0;
-            while(await IsCaptivePortalAsync()&& i < 10)
+            while(await IsCaptivePortalAsync() && i < 10)
             {
                 await AttemptLogin(driver);
                 ++i;
