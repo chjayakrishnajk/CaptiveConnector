@@ -40,7 +40,7 @@ namespace CaptiveConnector{
                 await Testing();
             }
             Log.Information("Ended");
-            Log.Information("Ending IP Address: " + GetWlan0IpAddress());
+            Log.Information("Ending IP Address: " + GetWlanIpAddress());
             Log.Information("Internet: "+ !(await IsCaptivePortalAsync()));
             Log.CloseAndFlush();
         }
@@ -64,11 +64,11 @@ namespace CaptiveConnector{
         }
         static async Task Starbucks(WifiSetting wifiSetting)
         {
-            Log.Information("Before Connecting: " + GetWlan0IpAddress());
+            Log.Information("Before Connecting: " + GetWlanIpAddress());
             await TryWifiConnectionWithNetworkManager(wifiSetting);
-            Log.Information("After Connecting: " + GetWlan0IpAddress());
+            Log.Information("After Connecting: " + GetWlanIpAddress());
             var options = new ChromeOptions();
-            options.AddArguments("headless");
+            //options.AddArguments("headless");
             options.AddArgument("--no-sandbox");
             var driver = new ChromeDriver(options);
             Log.Information("ChromeDriver Loaded");
@@ -90,7 +90,8 @@ namespace CaptiveConnector{
         {
             var actions = new List<Func<IWebDriver, Task<bool>>>
             {
-                TryClickToAcceptTerms
+                TryClickToAcceptTerms,
+                TryToEnterEmail
             }; 
 
             foreach (var action in actions)
@@ -102,22 +103,63 @@ namespace CaptiveConnector{
             }
             return false;
         }
+        static async Task<bool> TryToEnterEmail(IWebDriver driver)
+        {
+            
+            Log.Information("Trying to Enter Email");
+            File.WriteAllText($"html/{driver.Url.Replace("/","")}{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
+            var textfields = driver.FindElements(By.XPath("//input[@type='text' or @type='email' or @type='password' and not(@type='hidden')]"));
+            if(textfields.Count == 0)
+            {
+                Log.Information("No Text Fields Found");
+                return false;
+            }
+            try
+            {
+                var email = driver.FindElement(By.XPath("//input[@type='email']"));
+                Log.Information("Email Field: " + email.GetAttribute("outerHTML"));
+                if (email != null)
+                {
+                    email.SendKeys(await EmailGenerator());
+                    Thread.Sleep(1500);
+                    var signin= await FindBestMatch(driver, "//button | //input[@type='submit' or @type='button'] | //a[@href]", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" },new[] {"dont","don't","no","not","google","facebook","twitter" });
+                    if (signin!= null)
+                    {
+                        signin.Click();
+                        Thread.Sleep(2000);
+                        return true;
+                    }
+                }                
+            }
+            catch (Exception e)
+            {
+                Log.Information($"Error in TryClickToAcceptTerms: {e.Message}");
+            }
+            Log.Information("Returning False");
+            return false;
+        }
         static async Task<bool> TryClickToAcceptTerms(IWebDriver driver)
         {
             Log.Information("Trying to accept terms");
-            File.WriteAllText($"html/{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
+            File.WriteAllText($"html/{driver.Url.Replace("/","")}{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
             try
             {
                 // Find and click the checkbox
-                var checkbox = await FindBestMatch(driver, "//input[@type='checkbox']", new[] { "accept", "acceptance", "accepted", "agree", "agreed", "agreement", "terms", "conditions", "terms and conditions", "consent", "approve", "approval", "acknowledge", "acknowledgment", "comply", "compliance" });
+                var checkbox = await FindBestMatch(driver, "//input[@type='checkbox']", new[] { "accept", "acceptance", "accepted", "agree", "agreed", "agreement", "terms", "conditions", "terms and conditions", "consent", "approve", "approval", "acknowledge", "acknowledgment", "comply", "compliance" },new[] {"dont","don't","no","not","google","facebook","twitter" });
                 if (checkbox != null)
                 {
                     checkbox.Click();
                     Thread.Sleep(1000);
                 }
+                var textfields = driver.FindElements(By.XPath("//input[@type='text' or @type='email' or @type='password' and not(@type='hidden')]"));
+                if(textfields.Count !=0)
+                {
+                    Log.Information($"{textfields.Count} Text Fields Found");
+                    return false;
+                }
                 Log.Information("Checking for agree button");
-                // Find and click the agree button
-                var agreeButton = await FindBestMatch(driver, "//button | //input | //a", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" });
+                // Find and click the agree button                    
+                var agreeButton = await FindBestMatch(driver, "//button | //input[@type='submit' or @type='button'] | //a[@href]", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" },new[] {"dont","don't","no","not","google","facebook","twitter" });
 
                 if (agreeButton != null)
                 {
@@ -133,7 +175,11 @@ namespace CaptiveConnector{
             Log.Information("Returning False");
             return false;
         }
-        static async Task<IWebElement> FindBestMatch(IWebDriver driver, string xpath, string[] keywords)
+        static async Task<string> EmailGenerator()
+        {
+            return "jk@gmail.com";
+        }
+        static async Task<IWebElement> FindBestMatch(IWebDriver driver, string xpath, string[] keywords,string[] negative)
         {
             Log.Information("XPATH: " + xpath);
             var elements = driver.FindElements(By.XPath(xpath));
@@ -145,15 +191,19 @@ namespace CaptiveConnector{
                 texts.Add(element.Text?.ToLower() ?? "");
                 texts.Add(element.GetAttribute("value")?.ToLower() ?? "");
                 texts.Add(element.GetAttribute("name")?.ToLower() ?? "");
-                Log.Information("Element: " + element.GetAttribute("innerHTML"));
+                Log.Information("Element: " + element.GetAttribute("outerHTML"));
                 foreach(string text in texts)
                 {
-                    foreach(var keyword in keywords)
+                    if(keywords.Any(x=> text.Contains(x)) && !string.IsNullOrEmpty(text)&& !negative.Any(x=> text.Contains(x)))
                     {
-                        if(text.Contains(keyword) && !string.IsNullOrEmpty(text))
+                        Log.Information($"{keywords.Where(x=> x.Contains(text)).FirstOrDefault()} Matched with {text}");
+                        return element;
+                    }
+                    else
+                    {
+                        if(negative.Any(x=> text.Contains(x)))
                         {
-                            Log.Information($"{keyword} Matched with {text}");
-                            return element;
+                            Log.Information($"Found a negative word {negative.Where(x=> text.Contains(x)).FirstOrDefault()} in {text}");
                         }
                     }
                 }
@@ -257,7 +307,7 @@ namespace CaptiveConnector{
                 return false;
             }
         }  
-        static string GetWlan0IpAddress()
+        static string GetWlanIpAddress()
          {
              try{
                  return NetworkInterface.GetAllNetworkInterfaces()
@@ -275,7 +325,6 @@ namespace CaptiveConnector{
          }
         private static async Task<bool> TryWifiConnectionWithNetworkManager(WifiSetting wifiSetting)
         {
-
             var di = new DirectoryInfo(@"/etc/NetworkManager/system-connections");
             Log.Information("Files Found: " + di.GetFiles().Count());
             foreach (var item in di.GetFiles())
@@ -287,7 +336,7 @@ namespace CaptiveConnector{
                 }
             }
             Log.Information("Files Left: " + di.GetFiles().Count());
-
+            await Task.Delay(1000);
             var cmd = $@"nmcli connection reload";
             ShellHelper.ExecuteProcess("sudo", cmd, "");
             cmd = "sudo nmcli device wifi rescan";
