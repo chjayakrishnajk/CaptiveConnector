@@ -8,6 +8,7 @@ using OpenQA.Selenium.Support.UI;
 using System.Linq;
 using Serilog;
 using System.Net.NetworkInformation;
+using System.Text;
 namespace CaptiveConnector{    
     class Program{
         public static string wifiInterface = "wlan0";
@@ -120,7 +121,9 @@ namespace CaptiveConnector{
                 Log.Information("Email Field: " + email.GetAttribute("outerHTML"));
                 if (email != null)
                 {
-                    email.SendKeys(await EmailGenerator());
+                    var tempmail = await RandomEmailGenerator.GenerateRandomEmailAsync();
+                    Log.Information($"Temp mail: "+tempmail);
+                    email.SendKeys(tempmail);
                     Thread.Sleep(1500);
                     var signin= await FindBestMatch(driver, "//button | //input[@type='submit' or @type='button'] | //a[@href]", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" },new[] {"dont","don't","no","not","google","facebook","twitter" });
                     if (signin!= null)
@@ -174,10 +177,6 @@ namespace CaptiveConnector{
             }
             Log.Information("Returning False");
             return false;
-        }
-        static async Task<string> EmailGenerator()
-        {
-            return "jk@gmail.com";
         }
         static async Task<IWebElement> FindBestMatch(IWebDriver driver, string xpath, string[] keywords,string[] negative)
         {
@@ -498,4 +497,32 @@ namespace CaptiveConnector{
 
 
     }
-} 
+    public class RandomEmailGenerator
+{
+    private static readonly Random random = new Random();
+    private static readonly string[] domains = { "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "example.com" };
+
+    public static async Task<string> GenerateRandomEmailAsync()
+    {
+        string username = await GenerateRandomStringAsync(8);
+        string domain = await Task.Run(() => domains[random.Next(domains.Length)]);
+        return $"{username}@{domain}";
+    }
+
+    private static async Task<string> GenerateRandomStringAsync(int length)
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder(length);
+
+        await Task.Run(() =>
+        {
+            for (int i = 0; i < length; i++)
+            {
+                sb.Append(chars[random.Next(chars.Length)]);
+            }
+        });
+
+        return sb.ToString();
+    }
+}
+}
