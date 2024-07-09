@@ -74,7 +74,8 @@ namespace CaptiveConnector{
             Log.Information("ChromeDriver Loaded");
             var captiveUrl = await GetCaptivePortalUrlAsync();
             Log.Information("Captive Url: " + captiveUrl);
-            driver.Navigate().GoToUrl(captiveUrl);  
+            driver.Navigate().GoToUrl(captiveUrl); 
+            Thread.Sleep(2000);
             int i = 0;
             while(await IsCaptivePortalAsync() && i < 10)
             {
@@ -90,7 +91,7 @@ namespace CaptiveConnector{
             var actions = new List<Func<IWebDriver, Task<bool>>>
             {
                 TryClickToAcceptTerms
-            };
+            }; 
 
             foreach (var action in actions)
             {
@@ -104,6 +105,7 @@ namespace CaptiveConnector{
         static async Task<bool> TryClickToAcceptTerms(IWebDriver driver)
         {
             Log.Information("Trying to accept terms");
+            File.WriteAllText($"html/{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
             try
             {
                 // Find and click the checkbox
@@ -115,7 +117,7 @@ namespace CaptiveConnector{
                 }
                 Log.Information("Checking for agree button");
                 // Find and click the agree button
-                var agreeButton = await FindBestMatch(driver, "//button | //input[@type='submit'] | //a", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" });
+                var agreeButton = await FindBestMatch(driver, "//button | //input | //a", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" });
 
                 if (agreeButton != null)
                 {
@@ -135,17 +137,24 @@ namespace CaptiveConnector{
         {
             Log.Information("XPATH: " + xpath);
             var elements = driver.FindElements(By.XPath(xpath));
+            Log.Information("Got Elements");
+            Log.Information($"{elements.Count()} elements");
             foreach(var element in elements)
             {
-                List<string> texts = new List<string>();
-                texts.Add(element.Text.ToLower());
-                texts.Add(element.GetAttribute("value").ToLower());
-                texts.Add(element.GetAttribute("name").ToLower());
+                List<string> texts = new List<string>();            
+                texts.Add(element.Text?.ToLower() ?? "");
+                texts.Add(element.GetAttribute("value")?.ToLower() ?? "");
+                texts.Add(element.GetAttribute("name")?.ToLower() ?? "");
+                Log.Information("Element: " + element.GetAttribute("innerHTML"));
                 foreach(string text in texts)
                 {
-                    if(keywords.Contains(text))
+                    foreach(var keyword in keywords)
                     {
-                        return element;
+                        if(text.Contains(keyword) && !string.IsNullOrEmpty(text))
+                        {
+                            Log.Information($"{keyword} Matched with {text}");
+                            return element;
+                        }
                     }
                 }
             }
