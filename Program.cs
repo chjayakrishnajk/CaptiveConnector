@@ -9,6 +9,7 @@ using System.Linq;
 using Serilog;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.RegularExpressions;
 namespace CaptiveConnector{    
     class Program{
         public static string wifiInterface = "wlan0";
@@ -69,11 +70,16 @@ namespace CaptiveConnector{
             await TryWifiConnectionWithNetworkManager(wifiSetting);
             Log.Information("After Connecting: " + GetWlanIpAddress());
             var options = new ChromeOptions();
-            //options.AddArguments("headless");
+            options.AddArguments("headless");
             options.AddArgument("--no-sandbox");
             var driver = new ChromeDriver(options);
             Log.Information("ChromeDriver Loaded");
             var captiveUrl = await GetCaptivePortalUrlAsync();
+            if(captiveUrl == null)
+            {
+                Log.Information("Captive portal url is null");
+                captiveUrl = await GetCaptivePortalUrlWithCurlAsync();
+            }
             Log.Information("Captive Url: " + captiveUrl);
             driver.Navigate().GoToUrl(captiveUrl); 
             Thread.Sleep(2000);
@@ -251,10 +257,19 @@ namespace CaptiveConnector{
             try
             {
                 // Send a GET request
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("curl/7.68.0");
                 HttpResponseMessage response = await client.GetAsync("http://www.msftconnecttest.com/connecttest.txt");
                 Log.Information("Response from Connect Test: " + await response.Content.ReadAsStringAsync());
+                foreach (var header in response.Headers)
+                {
+                    Log.Information($"Header: {header.Key}: {string.Join(", ", header.Value)}");
+                }
+                foreach (var header in response.Headers)
+                {
+                    Log.Information($"{header.Key}: {string.Join(", ", header.Value)}");
+                }
                 // Check if the response contains a redirect
-                if (response.StatusCode == HttpStatusCode.Redirect || response.StatusCode == HttpStatusCode.RedirectKeepVerb || response.StatusCode == HttpStatusCode.RedirectMethod)
+                if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)
                 {
                     // Get the Location header value
                     if (response.Headers.Location != null)
@@ -279,6 +294,37 @@ namespace CaptiveConnector{
             }
         }
         return null;
+    }
+    public static async Task<string> GetCaptivePortalUrlWithCurlAsync()
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "curl",
+            Arguments = "-v -k http://www.msftconnecttest.com/connecttest.txt",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using (var process = new Process { StartInfo = startInfo })
+        {
+            process.Start();
+            string output = await process.StandardError.ReadToEndAsync(); // curl writes verbose output to stderr
+            await process.WaitForExitAsync();
+
+            // Use regex to find the Location header
+            var match = Regex.Match(output, @"^< Location: (.*)$", RegexOptions.Multiline);
+            if (match.Success)
+            {
+                return match.Groups[1].Value.Trim();
+            }
+
+            Console.WriteLine("Full curl output:");
+            Console.WriteLine(output);
+
+            return null; // Return null if no Location header was found
+        }
     }
       static async Task<bool> IsCaptivePortalAsync()
         {
