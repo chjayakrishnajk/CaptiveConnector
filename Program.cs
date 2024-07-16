@@ -69,11 +69,6 @@ namespace CaptiveConnector{
             Log.Information("Before Connecting: " + GetWlanIpAddress());
             await TryWifiConnectionWithNetworkManager(wifiSetting);
             Log.Information("After Connecting: " + GetWlanIpAddress());
-            var options = new ChromeOptions();
-            options.AddArguments("headless");
-            options.AddArgument("--no-sandbox");
-            var driver = new ChromeDriver(options);
-            Log.Information("ChromeDriver Loaded");
             var captiveUrl = await GetCaptivePortalUrlAsync();
             if(captiveUrl == null)
             {
@@ -81,6 +76,11 @@ namespace CaptiveConnector{
                 captiveUrl = await GetCaptivePortalUrlWithCurlAsync();
             }
             Log.Information("Captive Url: " + captiveUrl);
+            var options = new ChromeOptions();
+            //options.AddArguments("headless");
+            options.AddArgument("--no-sandbox");
+            var driver = new ChromeDriver(options);
+            Log.Information("ChromeDriver Loaded");
             driver.Navigate().GoToUrl(captiveUrl); 
             Thread.Sleep(2000);
             int i = 0;
@@ -248,59 +248,36 @@ namespace CaptiveConnector{
     }
     static async Task<String> GetCaptivePortalUrlAsync()
     {
-        var handler = new HttpClientHandler
+        Log.Information("Getting Captive Portal Url");
+   		using (var client = new HttpClient())
         {
-            AllowAutoRedirect = false // Disable automatic redirect following
-        };
-        using (HttpClient client = new HttpClient(handler))
-        {
+            client.Timeout = TimeSpan.FromSeconds(5);
             try
             {
-                // Send a GET request
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("curl/7.68.0");
-                HttpResponseMessage response = await client.GetAsync("http://www.msftconnecttest.com/connecttest.txt");
-                Log.Information("Response from Connect Test: " + await response.Content.ReadAsStringAsync());
-                foreach (var header in response.Headers)
+                var response = await client.GetAsync("http://captive.apple.com/hotspot-detect.html");
+                if (response.IsSuccessStatusCode)
                 {
-                    Log.Information($"Header: {header.Key}: {string.Join(", ", header.Value)}");
-                }
-                foreach (var header in response.Headers)
-                {
-                    Log.Information($"{header.Key}: {string.Join(", ", header.Value)}");
-                }
-                // Check if the response contains a redirect
-                if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)
-                {
-                    // Get the Location header value
-                    if (response.Headers.Location != null)
+                    string content = await response.Content.ReadAsStringAsync();
+                    if (!content.Contains("Success"))
                     {
-                        string location = response.Headers.Location.ToString();
-                        Log.Information("Redirect Location: " + location);
-                        return location;
+                        return response.RequestMessage.RequestUri.ToString();
                     }
-                    else
-                    {
-                        Log.Information("No Location header found.");
-                    }
-                }
-                else
-                {
-                    Log.Information("No redirect occurred. Status Code: " + response.StatusCode);
                 }
             }
-            catch (HttpRequestException e)
+            catch (HttpRequestException)
             {
-                Log.Information("Request error: " + e.Message);
+                // Handle exception (e.g., no internet connection)
             }
-        }
-        return null;
+    }
+    return null;
+	
     }
     public static async Task<string> GetCaptivePortalUrlWithCurlAsync()
     {
         var startInfo = new ProcessStartInfo
         {
             FileName = "curl",
-            Arguments = "-v -k http://www.msftconnecttest.com/connecttest.txt",
+            Arguments = "-v -k http://captive.apple.com/hotspot-detect.html",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -328,7 +305,7 @@ namespace CaptiveConnector{
     }
       static async Task<bool> IsCaptivePortalAsync()
         {
-        string url = "http://www.msftconnecttest.com/connecttest.txt";
+        string url = "http://captive.apple.com/hotspot-detect.html";
             try
             {
                 using (HttpClient client = new HttpClient())
@@ -337,7 +314,7 @@ namespace CaptiveConnector{
                     if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
                         string content = await response.Content.ReadAsStringAsync();
-                        if (content.Contains("Microsoft Connect Test"))
+                        if (content.Contains("Success"))
                         {
                             return false; // No captive portal
                         }
