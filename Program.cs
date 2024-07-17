@@ -79,17 +79,30 @@ namespace CaptiveConnector{
             var options = new ChromeOptions();
             //options.AddArguments("headless");
             options.AddArgument("--no-sandbox");
-            var driver = new ChromeDriver(options);
-            Log.Information("ChromeDriver Loaded");
-            driver.Navigate().GoToUrl(captiveUrl); 
-            Thread.Sleep(2000);
-            int i = 0;
-            while(await IsCaptivePortalAsync() && i < 10)
+            using( var driver = new ChromeDriver(options))
             {
-                await AttemptLogin(driver);
-                ++i;
+                Log.Information("ChromeDriver Loaded");
+                driver.Navigate().GoToUrl(captiveUrl); 
+                Thread.Sleep(2000);
+                int i = 0;
+                var english = driver.FindElement(By.XPath("//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'english')]"));
+                if(english != null)
+                {
+                    Log.Information("Clicking English Button");
+                    english.Click();
+                    Thread.Sleep(3000);
+                }
+                else
+                {
+                    Log.Information("Found no english button");
+                }
+                while(await IsCaptivePortalAsync() && i < 10)
+                {
+                    await AttemptLogin(driver);
+                    ++i;
+                }
+                driver.Quit();
             }
-            driver.Quit();
             Log.Information("Logged in");
             
         }
@@ -100,7 +113,6 @@ namespace CaptiveConnector{
                 TryClickToAcceptTerms,
                 TryToEnterEmail
             }; 
-
             foreach (var action in actions)
             {
                 if (await action(driver))
@@ -131,6 +143,12 @@ namespace CaptiveConnector{
                     Log.Information($"Temp mail: "+tempmail);
                     email.SendKeys(tempmail);
                     Thread.Sleep(1500);
+                    var checkbox = await FindBestMatch(driver, "//input[@type='checkbox']", new[] { "accept", "acceptance", "accepted", "agree", "agreed", "agreement", "terms", "conditions", "terms and conditions", "consent", "approve", "approval", "acknowledge", "acknowledgment", "comply", "compliance" },new[] {"dont","don't","no","not","google","facebook","twitter" });
+                    if (checkbox != null)
+                    {
+                        checkbox.Click();
+                        Thread.Sleep(1000);
+                    }
                     var signin= await FindBestMatch(driver, "//button | //input[@type='submit' or @type='button'] | //a[@href]", new[] { "agree", "accept", "continue", "connect", "confirm", "proceed", "next", "submit", "yes", "I agree", "I accept", "start", "join", "sign up", "register", "complete", "finish", "done", "okay", "allow", "authorize", "permit", "go", "ok", "sign", "login", "access", "authenticate", "enable" },new[] {"dont","don't","no","not","google","facebook","twitter" });
                     if (signin!= null)
                     {
