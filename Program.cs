@@ -10,10 +10,16 @@ using Serilog;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 namespace CaptiveConnector{    
     class Program{
         public static string wifiInterface = "wlan0";
         static async Task Main(string[] args) {
+        CultureInfo culture = new CultureInfo("en-US");
+        Thread.CurrentThread.CurrentCulture = culture;
+        Thread.CurrentThread.CurrentUICulture = culture;
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Console()
@@ -77,7 +83,7 @@ namespace CaptiveConnector{
             }
             Log.Information("Captive Url: " + captiveUrl);
             var options = new ChromeOptions();
-            //options.AddArguments("headless");
+            options.AddArguments("headless");
             options.AddArgument("--no-sandbox");
             using( var driver = new ChromeDriver(options))
             {
@@ -89,6 +95,8 @@ namespace CaptiveConnector{
                 if(english != null)
                 {
                     Log.Information("Clicking English Button");
+                    Log.Information("English button html: " + english.GetAttribute("outerHTML"));
+                    Thread.Sleep(1000);
                     english.Click();
                     Thread.Sleep(3000);
                 }
@@ -269,6 +277,8 @@ namespace CaptiveConnector{
         Log.Information("Getting Captive Portal Url");
    		using (var client = new HttpClient())
         {
+            client.DefaultRequestHeaders.AcceptLanguage.Clear();
+            client.DefaultRequestHeaders.AcceptLanguage.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("en-US"));
             client.Timeout = TimeSpan.FromSeconds(5);
             try
             {
