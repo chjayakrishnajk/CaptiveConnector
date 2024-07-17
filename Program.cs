@@ -92,13 +92,25 @@ namespace CaptiveConnector{
                 Thread.Sleep(2000);
                 int i = 0;
                 var english = driver.FindElement(By.XPath("//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'english')]"));
+                if(!driver.PageSource.Contains("error"))
+                {
+                    Log.Information("PAGE CONTAINS NO ERROR");
+                }
                 if(english != null)
                 {
-                    Log.Information("Clicking English Button");
-                    Log.Information("English button html: " + english.GetAttribute("outerHTML"));
-                    Thread.Sleep(1000);
-                    english.Click();
-                    Thread.Sleep(3000);
+                    try{
+                        Log.Information("Clicking English Button");
+                        Log.Information("English button html: " + english.GetAttribute("outerHTML"));
+                        Thread.Sleep(1000);
+                        english.Click();
+                        Thread.Sleep(3000);
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.Information("Clicking via js");
+                        IJavaScriptExecutor jsEx = (IJavaScriptExecutor)driver;
+                        jsEx.ExecuteScript("arguments[0].click();", english);
+                    }
                 }
                 else
                 {
