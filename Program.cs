@@ -94,12 +94,12 @@ namespace CaptiveConnector{
                 var english = driver.FindElement(By.XPath("//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'english')]"));
                 if(!driver.PageSource.Contains("error occurred"))
                 {
-                    File.WriteAllText($"html/welcome{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
+                    File.WriteAllText($"html/error{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
                     Log.Information("PAGE CONTAINS NO ERROR");
                 }
                 else
                 {
-                    Log.Information("Page Contains error");
+                    Log.Information("Page Contains error before clicking english button");
                 }
                 if(english != null)
                 {
@@ -120,6 +120,15 @@ namespace CaptiveConnector{
                 else
                 {
                     Log.Information("Found no english button");
+                }
+                if(!driver.PageSource.Contains("error occurred"))
+                {
+                    File.WriteAllText($"html/welcome{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
+                    Log.Information("PAGE CONTAINS NO ERROR");
+                }
+                else
+                {
+                    Log.Information("Page Contains error after clicking english button");
                 }
                 while(await IsCaptivePortalAsync() && i < 10)
                 {
