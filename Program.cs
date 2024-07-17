@@ -92,9 +92,14 @@ namespace CaptiveConnector{
                 Thread.Sleep(2000);
                 int i = 0;
                 var english = driver.FindElement(By.XPath("//a[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'english')]"));
-                if(!driver.PageSource.Contains("error"))
+                if(!driver.PageSource.Contains("error occurred"))
                 {
+                    File.WriteAllText($"html/welcome{DateTime.Now.ToString("HHmmss")}.html", driver.PageSource);
                     Log.Information("PAGE CONTAINS NO ERROR");
+                }
+                else
+                {
+                    Log.Information("Page Contains error");
                 }
                 if(english != null)
                 {
